@@ -1,0 +1,9 @@
+.navbar.is-primary {
+  background-color: var(--primary-color);
+  color: #fff;
+}
+
+.button.is-primary {
+  background-color: var(--primary-color);
+  filter: brightness(150%);
+}

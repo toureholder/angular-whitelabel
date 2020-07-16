@@ -1,35 +1,36 @@
-import { TestBed, async } from '@angular/core/testing';
+import { TestBed, async, ComponentFixture } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
+import { CoreModule } from './core/core.module';
+import { ThemingService } from './core/services/theming.service';
 
 describe('AppComponent', () => {
+  let mockThemingSerivce: jasmine.SpyObj<ThemingService>;
+  let fixture: ComponentFixture<AppComponent>;
+
   beforeEach(async(() => {
+    mockThemingSerivce = jasmine.createSpyObj('ThemingService', [
+      'setCSSVariables',
+    ]);
+
     TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule
-      ],
-      declarations: [
-        AppComponent
-      ],
+      imports: [RouterTestingModule, CoreModule],
+      declarations: [AppComponent],
+      providers: [{ provide: ThemingService, useValue: mockThemingSerivce }],
     }).compileComponents();
+
+    fixture = TestBed.createComponent(AppComponent);
   }));
 
   it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
     const app = fixture.componentInstance;
     expect(app).toBeTruthy();
   });
 
-  it(`should have as title 'angular-whitelabel'`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('angular-whitelabel');
-  });
-
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
+  it('should delegate theming to theming service', () => {
+    // Act / When
     fixture.detectChanges();
-    const compiled = fixture.nativeElement;
-    expect(compiled.querySelector('.content span').textContent).toContain('angular-whitelabel app is running!');
+    // Assert / Then
+    expect(mockThemingSerivce.setCSSVariables).toHaveBeenCalled();
   });
 });
