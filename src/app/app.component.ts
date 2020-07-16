@@ -1,5 +1,7 @@
 import { Component, OnInit, ElementRef } from '@angular/core';
 import { ThemingService } from './core/services/theming.service';
+import { ConfigurationService } from './core/configuration/configuration.service';
+import { config } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -7,12 +9,19 @@ import { ThemingService } from './core/services/theming.service';
   styleUrls: ['./app.component.css'],
 })
 export class AppComponent implements OnInit {
-  constructor(private el: ElementRef, private theming: ThemingService) {}
+  constructor(
+    private el: ElementRef,
+    private themingService: ThemingService,
+    private configurationService: ConfigurationService
+  ) {}
+
   ngOnInit(): void {
-    this.theme({ 'primary-color': 'red' });
+    this.confgureApplication();
   }
 
-  private theme(map: { [key: string]: string }) {
-    this.theming.setCSSVariables(this.el, map);
+  private confgureApplication(): void {
+    this.configurationService.getConfig().subscribe((data: any) => {
+      this.themingService.setCSSVariables(this.el, data.theme);
+    });
   }
 }
