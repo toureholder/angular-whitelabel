@@ -1,27 +1,41 @@
-# AngularWhitelabel
+# Angular Whitelabel
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 9.1.6.
+Este projeto é um starter para uma aplicação Angular whitelabel. O escopo da parametrização é caraterísticas visuais, e a habilitação e desabilitação de funcionalidades.
 
-## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+## Arquitetura
 
-## Code scaffolding
+### Diagrama de classes
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+![diagrama de classes](./docs/angular_whitelabel.png "diagrama de classes")
 
-## Build
+### AppComponent
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+O componente base da aplicação Angular. O componente solicita a configuração do serviço de configuração e delega a customização visual ao serviço de tema.
 
-## Running unit tests
+### ThemingService
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Serviço de tema responsável por aplicar configurações visuais ao DOM.
 
-## Running end-to-end tests
+### ConfigurationService
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+Serviço de configuração que é efetivamente um repositório dos dados de configuração, no sentido do *repository pattern*. *ConfigurationService* tem como dependência *ConfigurationInMemoryService*, *ConfigurationCacheService*, *ConfigurationApiService* que servem como fontes de dados.
 
-## Further help
+O serviço de configuração consulta os dados na seguinte ordem de preferência:
+1. Dados em memória
+2. Dados em cache, se o cache estiver habilitado
+3. API
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+O uso do cache pode ser habilitado/desabilitado pelo serviço de configuração.
+
+Os dados sempre são guardados em memória após consulta independente da fonte.
+
+
+### ConfigurationApiService
+Serviço responsável por fazer uma requisição **http** para buscar a configuração.
+
+### ConfigurationCacheService
+Serviço responsável por usar o **local storage** para buscar e guardar a configuração.
+
+### ConfigurationInMemoryService
+Serviço responsável por buscar e guardar a configuração **em memória**.
