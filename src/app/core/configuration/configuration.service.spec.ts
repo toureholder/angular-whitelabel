@@ -16,7 +16,7 @@ describe('ConfigurationService', () => {
     mockApi = jasmine.createSpyObj('ConfigurationApiService', ['fetchConfig']);
     mockCache = jasmine.createSpyObj('ConfigurationCacheService', [
       'getConfiguration',
-      'setConfiguration',
+      'saveConfiguration',
     ]);
     mockInMemory = jasmine.createSpyObj('ConfigurationInMemoryService', [
       'getConfiguration',
@@ -123,7 +123,7 @@ describe('ConfigurationService', () => {
 
       // Then
       configObservable.subscribe((data) => {
-        expect(mockCache.setConfiguration).toHaveBeenCalledWith(
+        expect(mockCache.saveConfiguration).toHaveBeenCalledWith(
           getConfigApiResponse
         );
       });
@@ -184,7 +184,7 @@ describe('ConfigurationService', () => {
 
       // Then
       configObservable.subscribe((data) => {
-        expect(mockCache.setConfiguration).not.toHaveBeenCalled();
+        expect(mockCache.saveConfiguration).not.toHaveBeenCalled();
       });
     });
   });

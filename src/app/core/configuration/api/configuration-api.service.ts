@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { AppConfiguration } from '../configuration';
 
 @Injectable({
   providedIn: 'root',
@@ -8,7 +9,7 @@ import { Observable } from 'rxjs';
 export class ConfigurationApiService {
   constructor(private http: HttpClient) {}
 
-  fetchConfig(): Observable<any> {
+  fetchConfig(): Observable<AppConfiguration> {
     return this.http.get('http://localhost:3000/config');
   }
 }

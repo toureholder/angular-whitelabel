@@ -27,7 +27,7 @@ export class ConfigurationService {
   }
 
   getConfig(): Observable<AppConfiguration> {
-    const inMemoryConfiguration = this.inMemory.getConfiguration();
+    const inMemoryConfiguration = this.getFromMemory();
 
     if (inMemoryConfiguration) {
       return of(inMemoryConfiguration);
@@ -37,29 +37,35 @@ export class ConfigurationService {
       const cacheResponse = this.cache.getConfiguration();
 
       return cacheResponse
-        ? this.fromCache(cacheResponse)
-        : this.fetchFromApi(true);
+        ? this.getFromCache(cacheResponse)
+        : this.getFromApi(true);
     }
 
-    return this.fetchFromApi();
+    return this.getFromApi();
   }
 
-  private fetchFromApi(isCacheEnabled = false): Observable<AppConfiguration> {
+  private getFromApi(isCacheEnabled = false): Observable<AppConfiguration> {
     return this.api.fetchConfig().pipe(
       tap((val) => {
         this.inMemory.saveConfiguration(val);
         if (isCacheEnabled) {
-          this.cache.setConfiguration(val);
+          this.cache.saveConfiguration(val);
         }
       })
     );
   }
 
-  private fromCache(cacheResponse: AppConfiguration) {
+  private getFromCache(
+    cacheResponse: AppConfiguration
+  ): Observable<AppConfiguration> {
     return of(cacheResponse).pipe(
       tap((val) => {
         this.inMemory.saveConfiguration(val);
       })
     );
+  }
+
+  private getFromMemory(): AppConfiguration {
+    return this.inMemory.getConfiguration();
   }
 }

@@ -19,7 +19,7 @@ describe('ConfigurationCacheService', () => {
     const data = { foo: 'bar' };
 
     // When
-    service.setConfiguration(data);
+    service.saveConfiguration(data);
 
     // Then
     expect(service.getConfiguration()).toEqual(data);

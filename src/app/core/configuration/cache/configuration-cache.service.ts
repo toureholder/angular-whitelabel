@@ -10,8 +10,8 @@ export class ConfigurationCacheService {
   getConfiguration(): AppConfiguration {
     return JSON.parse(localStorage.getItem(this.cacheKey));
   }
-  setConfiguration(data: AppConfiguration) {
-    localStorage.setItem(this.cacheKey, JSON.stringify(data));
+  saveConfiguration(configuration: AppConfiguration) {
+    localStorage.setItem(this.cacheKey, JSON.stringify(configuration));
   }
 
   constructor() {}
