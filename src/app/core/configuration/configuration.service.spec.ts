@@ -1,16 +1,16 @@
-import { HttpClient } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import getConfigApiResponse from '../../../testing/api-responses/get-config.json';
-import { ConfigurationService } from './configuration.service';
 import { of } from 'rxjs';
-import { ConfigurationCacheService } from './cache/configuration-cache.service';
+import getConfigApiResponse from '../../../testing/api-responses/get-config.json';
 import { ConfigurationApiService } from './api/configuration-api.service';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { ConfigurationCacheService } from './cache/configuration-cache.service';
+import { ConfigurationService } from './configuration.service';
+import { ConfigurationInMemoryService } from './in-memory/configuration-in-memory.service';
 
 describe('ConfigurationService', () => {
   let service: ConfigurationService;
   let mockApi: jasmine.SpyObj<ConfigurationApiService>;
   let mockCache: jasmine.SpyObj<ConfigurationCacheService>;
+  let mockInMemory: jasmine.SpyObj<ConfigurationInMemoryService>;
 
   beforeEach(() => {
     mockApi = jasmine.createSpyObj('ConfigurationApiService', ['fetchConfig']);
@@ -18,12 +18,16 @@ describe('ConfigurationService', () => {
       'getConfiguration',
       'setConfiguration',
     ]);
+    mockInMemory = jasmine.createSpyObj('ConfigurationInMemoryService', [
+      'getConfiguration',
+      'saveConfiguration',
+    ]);
 
     TestBed.configureTestingModule({
-      imports: [HttpClientTestingModule],
       providers: [
         { provide: ConfigurationApiService, useValue: mockApi },
         { provide: ConfigurationCacheService, useValue: mockCache },
+        { provide: ConfigurationInMemoryService, useValue: mockInMemory },
       ],
     });
     service = TestBed.inject(ConfigurationService);
@@ -33,62 +37,155 @@ describe('ConfigurationService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('#getConfig should NOT check cache if cache is disabled', () => {
-    // Given
-    service.disableCache();
-    mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
+  describe('configuration is in memory', () => {
+    it('should get configuration from memory if available', () => {
+      // Given
+      mockInMemory.getConfiguration.and.returnValue({ foo: 'memory' });
+      // When
+      service.getConfig();
 
-    // When
-    service.getConfig();
-
-    // Then
-    expect(mockCache.getConfiguration).not.toHaveBeenCalled();
-  });
-
-  it('should get config from cache if available', () => {
-    // Given
-    mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
-
-    mockCache.getConfiguration.and.returnValue({ foo: 'bar' });
-
-    // When
-    const configObservable = service.getConfig();
-
-    // Then
-    configObservable.subscribe((data) => {
-      expect(data).toEqual(jasmine.objectContaining({ foo: 'bar' }));
+      // Then
+      expect(mockCache.getConfiguration).not.toHaveBeenCalled();
+      expect(mockApi.fetchConfig).not.toHaveBeenCalled();
     });
   });
 
-  it('should get config from api if cache is not available', () => {
-    // Given
-    const apiResponse = getConfigApiResponse;
-    mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
+  describe('configuration is not in memory and cache is enabled', () => {
+    beforeEach(() => {
+      mockInMemory.getConfiguration.and.returnValue(undefined);
+      service.enableCache();
+    });
 
-    mockCache.getConfiguration.and.returnValue(undefined);
+    it('should get config from cache if available', () => {
+      mockCache.getConfiguration.and.returnValue({ foo: 'cache' });
 
-    // When
-    const configObservable = service.getConfig();
+      // When
+      const configObservable = service.getConfig();
 
-    // Then
-    configObservable.subscribe((data) => {
-      expect(data).toEqual(jasmine.objectContaining(apiResponse));
+      // Then
+      configObservable.subscribe((data) => {
+        expect(data).toEqual(jasmine.objectContaining({ foo: 'cache' }));
+      });
+    });
+
+    it('should save config in memory after cache response', () => {
+      // Given
+      mockCache.getConfiguration.and.returnValue({ foo: 'bar' });
+
+      // When
+      const configObservable = service.getConfig();
+
+      // Then
+      configObservable.subscribe((data) => {
+        expect(mockInMemory.saveConfiguration).toHaveBeenCalledWith({
+          foo: 'bar',
+        });
+      });
+    });
+
+    it('should get config from api if cache is not available', () => {
+      // Given
+      mockCache.getConfiguration.and.returnValue(undefined);
+      mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
+
+      // When
+      const configObservable = service.getConfig();
+
+      // Then
+      configObservable.subscribe((data) => {
+        expect(data).toEqual(jasmine.objectContaining(getConfigApiResponse));
+      });
+    });
+
+    it('should save config in memory after api response', () => {
+      // Given
+      mockCache.getConfiguration.and.returnValue(undefined);
+      mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
+
+      // When
+      const configObservable = service.getConfig();
+
+      // Then
+      configObservable.subscribe((data) => {
+        expect(mockInMemory.saveConfiguration).toHaveBeenCalledWith(
+          getConfigApiResponse
+        );
+      });
+    });
+
+    it('should save config in cache after api response', () => {
+      // Given
+      mockCache.getConfiguration.and.returnValue(undefined);
+      mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
+
+      // When
+      const configObservable = service.getConfig();
+
+      // Then
+      configObservable.subscribe((data) => {
+        expect(mockCache.setConfiguration).toHaveBeenCalledWith(
+          getConfigApiResponse
+        );
+      });
     });
   });
 
-  it('should set config in cache after api response', () => {
-    // Given
-    const apiResponse = getConfigApiResponse;
-    mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
+  describe('configuration is not in memory and cache is disabled', () => {
+    beforeEach(() => {
+      mockInMemory.getConfiguration.and.returnValue(undefined);
+      service.disableCache();
+    });
 
-    mockCache.getConfiguration.and.returnValue(undefined);
+    it('should NOT check cache', () => {
+      // Given
+      mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
 
-    // When
-    const configObservable = service.getConfig();
+      // When
+      service.getConfig();
 
-    // Then
-    configObservable.subscribe((data) => {
-      expect(mockCache.setConfiguration).toHaveBeenCalledWith(apiResponse);
+      // Then
+      expect(mockCache.getConfiguration).not.toHaveBeenCalled();
+    });
+
+    it('should get config from api', () => {
+      // Given
+      mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
+
+      // When
+      const configObservable = service.getConfig();
+
+      // Then
+      configObservable.subscribe((data) => {
+        expect(data).toEqual(jasmine.objectContaining(getConfigApiResponse));
+      });
+    });
+
+    it('should save config in memory after api response', () => {
+      // Given
+      mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
+
+      // When
+      const configObservable = service.getConfig();
+
+      // Then
+      configObservable.subscribe((data) => {
+        expect(mockInMemory.saveConfiguration).toHaveBeenCalledWith(
+          getConfigApiResponse
+        );
+      });
+    });
+
+    it('should NOT save config in cache after api response', () => {
+      // Given
+      mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
+
+      // When
+      const configObservable = service.getConfig();
+
+      // Then
+      configObservable.subscribe((data) => {
+        expect(mockCache.setConfiguration).not.toHaveBeenCalled();
+      });
     });
   });
 });
