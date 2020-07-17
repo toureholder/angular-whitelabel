@@ -20,6 +20,8 @@ export class AppComponent implements OnInit {
   }
 
   private confgureApplication(): void {
+    this.configurationService.disableCache();
+
     this.configurationService.getConfig().subscribe((data: any) => {
       this.themingService.setCSSVariables(this.el, data.theme);
     });

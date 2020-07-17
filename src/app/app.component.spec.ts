@@ -20,6 +20,7 @@ describe('AppComponent', () => {
 
     mockConfigService = jasmine.createSpyObj('ConfigurationService', [
       'getConfig',
+      'disableCache',
     ]);
 
     TestBed.configureTestingModule({

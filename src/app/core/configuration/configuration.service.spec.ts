@@ -33,15 +33,16 @@ describe('ConfigurationService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('#getConfig should get check cache', () => {
+  it('#getConfig should NOT check cache if cache is disabled', () => {
     // Given
+    service.disableCache();
     mockApi.fetchConfig.and.returnValue(of(getConfigApiResponse));
 
     // When
     service.getConfig();
 
     // Then
-    expect(mockCache.getConfiguration).toHaveBeenCalled();
+    expect(mockCache.getConfiguration).not.toHaveBeenCalled();
   });
 
   it('should get config from cache if available', () => {

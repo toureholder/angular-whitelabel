@@ -14,7 +14,21 @@ export class ConfigurationService {
     private cache: ConfigurationCacheService
   ) {}
 
+  private isCacheEnabled = true;
+
+  enableCache() {
+    this.isCacheEnabled = true;
+  }
+
+  disableCache() {
+    this.isCacheEnabled = false;
+  }
+
   getConfig(): Observable<any> {
+    if (!this.isCacheEnabled) {
+      return this.api.fetchConfig();
+    }
+
     const cacheResponse = this.cache.getConfiguration();
 
     return cacheResponse
