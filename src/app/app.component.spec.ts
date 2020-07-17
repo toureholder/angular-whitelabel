@@ -6,6 +6,7 @@ import { ThemingService } from './core/services/theming.service';
 import { ConfigurationService } from './core/configuration/configuration.service';
 import { of } from 'rxjs';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { MainLayoutComponent } from './core/layout/main-layout/main-layout.component';
 
 describe('AppComponent', () => {
   let mockThemingSerivce: jasmine.SpyObj<ThemingService>;
@@ -25,7 +26,7 @@ describe('AppComponent', () => {
 
     TestBed.configureTestingModule({
       imports: [RouterTestingModule, CoreModule, HttpClientTestingModule],
-      declarations: [AppComponent],
+      declarations: [AppComponent, MainLayoutComponent],
       providers: [
         { provide: ThemingService, useValue: mockThemingSerivce },
         { provide: ConfigurationService, useValue: mockConfigService },

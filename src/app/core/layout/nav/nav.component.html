@@ -23,11 +23,21 @@
 
   <div id="navbarBasicExample" class="navbar-menu">
     <div class="navbar-start">
-      <a class="navbar-item" routerLink="sales">
+      <a
+        *ngIf="isFeatureEnabled('sales')"
+        class="navbar-item"
+        routerLink="sales"
+        data-test="sales-link"
+      >
         Vendas
       </a>
 
-      <a class="navbar-item" routerLink="documentation">
+      <a
+        *ngIf="isFeatureEnabled('documentation')"
+        class="navbar-item"
+        routerLink="documentation"
+        data-test="documentation-link"
+      >
         Documentação
       </a>
     </div>
