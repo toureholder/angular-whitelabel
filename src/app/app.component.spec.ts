@@ -13,6 +13,7 @@ describe('AppComponent', () => {
   let mockConfigService: jasmine.SpyObj<ConfigurationService>;
   let fixture: ComponentFixture<AppComponent>;
   let app: AppComponent;
+  let template: HTMLElement;
 
   beforeEach(() => {
     mockThemingSerivce = jasmine.createSpyObj('ThemingService', [
@@ -35,6 +36,7 @@ describe('AppComponent', () => {
 
     fixture = TestBed.createComponent(AppComponent);
     app = fixture.componentInstance;
+    template = fixture.nativeElement;
   });
 
   it('should create the app', () => {
@@ -43,14 +45,14 @@ describe('AppComponent', () => {
 
   it('should delegate theming to theming service', () => {
     // Given
-    const config = {
+    const data = {
       theme: {
         'primary-color': 'red',
         'secondary-color': 'teal',
       },
     };
 
-    mockConfigService.getConfig.and.returnValue(of(config));
+    mockConfigService.getConfig.and.returnValue(of(data));
 
     // Act / When
     fixture.detectChanges();
@@ -58,7 +60,33 @@ describe('AppComponent', () => {
     // Assert / Then
     expect(mockThemingSerivce.setCSSVariables).toHaveBeenCalledWith(
       fixture.elementRef,
-      config.theme
+      data.theme
     );
+  });
+
+  it('should NOT render main layout when loading configuration', () => {
+    // Given
+    app.isLoadingConfiguration = true;
+
+    // Then
+    expect(template.querySelector('app-main-layout')).toBeFalsy();
+  });
+
+  it('should render main layout after it loads configuration', () => {
+    // Given
+    const data = {
+      theme: {
+        'primary-color': 'red',
+        'secondary-color': 'teal',
+      },
+    };
+
+    mockConfigService.getConfig.and.returnValue(of(data));
+
+    // Act / When
+    fixture.detectChanges();
+
+    // Assert / Then
+    expect(template.querySelector('app-main-layout')).toBeTruthy();
   });
 });

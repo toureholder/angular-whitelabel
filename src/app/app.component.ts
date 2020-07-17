@@ -15,15 +15,19 @@ export class AppComponent implements OnInit {
     private configurationService: ConfigurationService
   ) {}
 
+  isLoadingConfiguration: boolean;
+
   ngOnInit(): void {
     this.confgureApplication();
   }
 
   private confgureApplication(): void {
+    this.isLoadingConfiguration = true;
     this.configurationService.disableCache();
 
     this.configurationService.getConfig().subscribe((data: any) => {
       this.themingService.setCSSVariables(this.el, data.theme);
+      this.isLoadingConfiguration = false;
     });
   }
 }
